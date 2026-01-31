@@ -1,0 +1,8 @@
+{
+  "name": "Centaurus",
+  "description": "پلتفرم همکاری هوش مصنوعی و انسان با قابلیت ساخت و مدیریت ایجنت‌های هوشمند و همکاری در میز گرد استراتژیک.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
