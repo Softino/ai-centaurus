@@ -478,6 +478,6 @@ export const MARKETPLACE_THINK_TANKS: ThinkTank[] = [
 ];
 
 export const MODELS = {
-  TEXT: 'gemini-3-flash-preview',
-  PRO: 'gemini-3-pro-preview'
+  TEXT: 'google/gemini-3-flash-preview',
+  AUDIO: 'openai/gpt-audio-mini'
 };

@@ -13,7 +13,7 @@ import SettingsView from './components/SettingsView';
 import AuthPage from './components/AuthPage';
 import { Agent, RoundTableSession, SessionReport as ReportType, ThinkTank, Expert, ExpertInvitation, ExpertHistory } from './types';
 import { MARKETPLACE_AGENTS, SOCIAL_EXPERTS } from './constants';
-import { geminiService } from './services/geminiService';
+import { geminiService as aiService } from './services/aiService';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,7 +28,7 @@ const App: React.FC = () => {
   const [audioUrl, setAudioUrl] = useState<string | undefined>(undefined);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [proxyUrl, setProxyUrl] = useState<string>(localStorage.getItem('centaurus_proxy') || '');
-  
+
   // Experts & Invitations
   const [allExperts, setAllExperts] = useState<Expert[]>(SOCIAL_EXPERTS);
   const [expertInvitations, setExpertInvitations] = useState<ExpertInvitation[]>([]);
@@ -103,35 +103,35 @@ const App: React.FC = () => {
   };
 
   const handleCompleteSession = (session: RoundTableSession) => {
-      const report: ReportType = session.liveReport || {
-          sessionId: session.id,
-          topic: session.topic,
-          summary: `گزارش جامع نشست قنطورس حول محور "${session.topic}".`,
-          keyInsights: ["تحلیل اولیه تکمیل شد"],
-          keyTakeaways: [],
-          riskMatrix: [{ threat: "نوسانات عملیاتی", impact: "متوسط" }],
-          finalDecision: "نیاز به بررسی تکمیلی.",
-          timeline: []
-      };
-      
-      // Auto-save logic
-      try {
-        const savedReportsStr = localStorage.getItem('centaurus_saved_reports');
-        const savedReports = savedReportsStr ? JSON.parse(savedReportsStr) : [];
-        const updatedReports = [...savedReports, report];
-        localStorage.setItem('centaurus_saved_reports', JSON.stringify(updatedReports));
-        console.log("Report auto-saved to localStorage", report.sessionId);
-      } catch (error) {
-        console.error("Failed to auto-save report", error);
-      }
+    const report: ReportType = session.liveReport || {
+      sessionId: session.id,
+      topic: session.topic,
+      summary: `گزارش جامع نشست قنطورس حول محور "${session.topic}".`,
+      keyInsights: ["تحلیل اولیه تکمیل شد"],
+      keyTakeaways: [],
+      riskMatrix: [{ threat: "نوسانات عملیاتی", impact: "متوسط" }],
+      finalDecision: "نیاز به بررسی تکمیلی.",
+      timeline: []
+    };
 
-      setAudioUrl(session.audioRecordingUrl);
-      setActiveReport(report);
+    // Auto-save logic
+    try {
+      const savedReportsStr = localStorage.getItem('centaurus_saved_reports');
+      const savedReports = savedReportsStr ? JSON.parse(savedReportsStr) : [];
+      const updatedReports = [...savedReports, report];
+      localStorage.setItem('centaurus_saved_reports', JSON.stringify(updatedReports));
+      console.log("Report auto-saved to localStorage", report.sessionId);
+    } catch (error) {
+      console.error("Failed to auto-save report", error);
+    }
+
+    setAudioUrl(session.audioRecordingUrl);
+    setActiveReport(report);
   };
 
   const handleInviteExpert = (expert: Expert) => {
     const activeSession = sessions.find(s => s.status === 'active');
-    
+
     const newInvite: ExpertInvitation = {
       id: `inv-${Date.now()}`,
       expertId: expert.id,
@@ -141,9 +141,9 @@ const App: React.FC = () => {
       timestamp: Date.now(),
       inviterName: role === 'architect' ? userProfile?.name || "معمار سیستم" : "ناظر سیستم"
     };
-    
+
     setExpertInvitations(prev => [...prev, newInvite]);
-    
+
     if (activeSession && expert.status === 'available') {
       handleAddToSession(expert);
     }
@@ -175,7 +175,7 @@ const App: React.FC = () => {
       // Fix: Added missing category property
       category: expert.category
     };
-    
+
     const activeSession = sessions.find(s => s.status === 'active');
     if (activeSession) {
       if (activeSession.participants.some(p => p.id === expertAgent.id)) {
@@ -221,7 +221,7 @@ const App: React.FC = () => {
   const handleSaveProxy = (url: string) => {
     setProxyUrl(url);
     localStorage.setItem('centaurus_proxy', url);
-    geminiService.updateConfig(url);
+    aiService.updateConfig(url);
   };
 
   const handleLogin = (r: 'architect' | 'expert', profile: any) => {
@@ -258,11 +258,11 @@ const App: React.FC = () => {
 
   return (
     <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`} dir="rtl">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        theme={theme} 
-        toggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')} 
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        theme={theme}
+        toggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         role={role}
         onLogout={() => { setIsLoggedIn(false); setUserProfile(null); }}
       />
@@ -280,14 +280,14 @@ const App: React.FC = () => {
             </header>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {ownedAgents.map(agent => (
-                <AgentCard 
-                  key={agent.id} 
-                  agent={agent} 
-                  isOwned={true} 
-                  actionLabel="توقف" 
-                  onAction={() => {}} 
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  isOwned={true}
+                  actionLabel="توقف"
+                  onAction={() => { }}
                   onStop={stopAgent}
-                  onShowProfile={setSelectedProfile} 
+                  onShowProfile={setSelectedProfile}
                 />
               ))}
             </div>
@@ -295,9 +295,9 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'dashboard' && role === 'expert' && (
-          <ExpertDashboard 
-            expert={userProfile} 
-            invitations={expertInvitations} 
+          <ExpertDashboard
+            expert={userProfile}
+            invitations={expertInvitations}
             history={expertHistory}
             onAcceptInvite={handleAcceptInvite}
             onDeclineInvite={handleDeclineInvite}
@@ -306,18 +306,18 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'expert_network' && (
-          <ExpertDirectory 
+          <ExpertDirectory
             experts={allExperts}
-            onInvite={handleInviteExpert} 
+            onInvite={handleInviteExpert}
             onAddToSession={handleAddToSession}
-            sentInvitations={expertInvitations} 
+            sentInvitations={expertInvitations}
             isSessionRunning={activeSessionRunning}
           />
         )}
 
         {activeTab === 'marketplace' && <Marketplace ownedAgents={ownedAgents} onPurchase={addAgent} onPurchaseThinkTank={addThinkTank} />}
         {activeTab === 'roundtable' && <RoundTable ownedAgents={ownedAgents} allExperts={allExperts} sentInvitations={expertInvitations} onUpdateSession={handleUpdateSession} currentSessions={sessions} onCompleteSession={handleCompleteSession} />}
-        
+
         {activeTab === 'settings' && <SettingsView proxyUrl={proxyUrl} onSaveProxy={handleSaveProxy} />}
 
         {showCreator && <AgentCreator onSave={(a) => { addAgent(a); setShowCreator(false); }} onCancel={() => setShowCreator(false)} />}
